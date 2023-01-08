@@ -4,7 +4,6 @@ fn main() {
     let parse_input: Vec<&str> = variable::INPUT.split('\n').collect();
     let parse_input: Vec<Vec<&str>> = parse_input.iter().map(|x| x.split(' ').collect()).collect();
     let mut result = 0;
-    // X lose, Y draw, Z win
     // A rock
     // B paper
     // C scissors
@@ -28,6 +27,7 @@ fn main() {
 }
 
 fn find_appropriate_response<'a>(opponent_move: &'a str, result: &'a str) -> Option<&'a str> {
+    // X lose, Y draw, Z win
     if result == "Y" {
         return Some(opponent_move);
     }
