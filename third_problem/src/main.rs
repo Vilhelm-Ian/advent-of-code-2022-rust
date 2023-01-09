@@ -48,12 +48,9 @@ fn find_item_in_both_compartments(compartment1: &str, compartment2: &str) -> Vec
 
 fn find_badge(ruck_sack_1: &str, ruck_sack_2: &str, ruck_sack_3: &str) -> Option<char> {
     let item_in_both_compartments = find_item_in_both_compartments(ruck_sack_1, ruck_sack_2);
-    for letter in item_in_both_compartments {
-        if ruck_sack_3.contains(letter) {
-            return Some(letter);
-        }
-    }
-    None
+    item_in_both_compartments
+        .into_iter()
+        .find(|&letter| ruck_sack_3.contains(letter))
 }
 
 #[cfg(test)]
