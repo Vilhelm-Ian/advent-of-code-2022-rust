@@ -29,8 +29,8 @@ struct Range {
 }
 
 impl Range {
-    fn new(start: i32, end: i32) -> Range {
-        Range { start, end }
+    fn new(start: i32, end: i32) -> Self {
+        Self { start, end }
     }
 }
 
