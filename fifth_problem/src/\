@@ -1,0 +1,19 @@
+mod variable;
+
+fn main() {
+    let input: Vec<&str> = variable::INPUT.split('\n').rev().collect();
+    let mut parsed_input: Vec<Vec<char>> = Vec::new();
+    for row in input {
+        let mut i = 1;
+        let chars: Vec<char> = row.chars().collect();
+        while i < row.len() {
+            if i % 2 != 0 {
+                parsed_input.push(Vec::new());
+                let length = parsed_input.len();
+                parsed_input[length - 1].push(chars[i]);
+            }
+            i += 4;
+        }
+    }
+    println!("Hello, world! {:?}", parsed_input[0]);
+}
