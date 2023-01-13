@@ -1,0 +1,1 @@
+/home/jovan/Documents/programiranje/rust/advent_of_code/sixth_problem/target/debug/sisxth_problem: /home/jovan/Documents/programiranje/rust/advent_of_code/sixth_problem/src/main.rs /home/jovan/Documents/programiranje/rust/advent_of_code/sixth_problem/src/variable.rs
