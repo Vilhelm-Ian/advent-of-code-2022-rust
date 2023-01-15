@@ -57,12 +57,9 @@ fn main() {
     let input = variable::INPUT;
     let tree = parse_input(input);
     sum_points_for_nodes(&tree);
-    //let print = tree.borrow().print_structure(0);
-    //println!("{print}");
+    let print = tree.borrow().print_structure(0);
+    println!("{print}");
     let directories = get_all_directories(tree).unwrap();
-    //for directory in &directories {
-    //    println!("{:?} {:?}", directory.name, directory.value)
-    // }
     let sum_of_directoris = sum_of_directoriese_smaller_than_limit(directories, 100000);
     println!("the solution is {:?}", sum_of_directoris);
 }
@@ -89,7 +86,7 @@ fn parse_input(input: &str) -> Rc<RefCell<Node>> {
                 files_and_folders.push(line)
             }
         }
-        if line.contains("ls") {
+        if splited_line[1] == "ls" {
             is_ls = true;
             continue;
         }
@@ -102,15 +99,13 @@ fn parse_input(input: &str) -> Rc<RefCell<Node>> {
                     Some(parent) => Rc::clone(parent),
                     None => panic!("has no parent at line {:?}", i),
                 };
+                if parent_current_node.borrow().name == "/" {
+                    println!("parent of {:?} is /", current_node.borrow().name);
+                }
                 current_node = Rc::clone(&parent_current_node);
             } else {
                 let current_node_clone = Rc::clone(&current_node);
                 let current_node_clone2 = Rc::clone(&current_node);
-                if splited_line[2] == "wttc" {
-                    println!("looking for wttc");
-                    let print_children = current_node_clone.borrow().print_structure(0);
-                    println!("{print_children}");
-                }
                 for i in 0..current_node_clone.borrow().children.len() {
                     let child_name = current_node_clone2.borrow().children[i]
                         .borrow()
@@ -118,9 +113,6 @@ fn parse_input(input: &str) -> Rc<RefCell<Node>> {
                         .clone();
                     if child_name == splited_line[2] {
                         current_node = Rc::clone(&current_node_clone.borrow().children[i]);
-                        if current_node.borrow().name == "wttc" {
-                            println!(" we found wttc")
-                        }
                         break;
                     }
                 }
@@ -131,9 +123,6 @@ fn parse_input(input: &str) -> Rc<RefCell<Node>> {
 }
 
 fn ls_command(input: Vec<&str>, tree: Rc<RefCell<Node>>) {
-    if tree.borrow().name == "wttc" {
-        println!("{:?}", input);
-    }
     for file in input {
         let split: Vec<&str> = file.split(' ').collect();
         let cloned_tree = Rc::clone(&tree);
