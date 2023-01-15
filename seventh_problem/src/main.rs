@@ -42,51 +42,27 @@ impl Node {
         }
     }
     fn print_structure(&self, index: usize) -> String {
-        let mut result;
-        if self.is_file {
-            return format!("{:?} {:?} ", self.name.clone(), self.value);
-        } else {
-            result = format!("{} {}", self.name.clone(), self.value);
-        }
+        let mut result = format!("{} {}", self.name.clone(), self.value);
         let inditation = " ".repeat(index);
         for i in 0..self.children.len() {
             let child = Rc::clone(&self.children[i]);
             let child_result = child.borrow().print_structure(index + 1);
-            result = format!("{result} \n {inditation}{child_result}",)
+            result = format!("{result} \n {inditation}-{child_result}",)
         }
         result
     }
 }
 
 fn main() {
-    let input = "$ cd /
-$ ls
-dir a
-14848514 b.txt
-8504156 c.dat
-dir d
-$ cd a
-$ ls
-dir e
-29116 f
-2557 g
-62596 h.lst
-$ cd e
-$ ls
-584 i
-$ cd ..
-$ cd ..
-$ cd d
-$ ls
-4060174 j
-8033020 d.log
-5626152 d.ext
-7214296 k";
+    let input = variable::INPUT;
     let tree = parse_input(input);
     sum_points_for_nodes(&tree);
-    let print = tree.borrow().print_structure(0);
-    println!("{print}");
+    //let print = tree.borrow().print_structure(0);
+    //println!("{print}");
     let directories = get_all_directories(tree).unwrap();
+    //for directory in &directories {
+    //    println!("{:?} {:?}", directory.name, directory.value)
+    // }
     let sum_of_directoris = sum_of_directoriese_smaller_than_limit(directories, 100000);
     println!("the solution is {:?}", sum_of_directoris);
 }
@@ -124,12 +100,17 @@ fn parse_input(input: &str) -> Rc<RefCell<Node>> {
             if splited_line[2] == ".." {
                 let parent_current_node = match &current_node.borrow().parent {
                     Some(parent) => Rc::clone(parent),
-                    None => continue,
+                    None => panic!("has no parent at line {:?}", i),
                 };
                 current_node = Rc::clone(&parent_current_node);
             } else {
                 let current_node_clone = Rc::clone(&current_node);
                 let current_node_clone2 = Rc::clone(&current_node);
+                if splited_line[2] == "wttc" {
+                    println!("looking for wttc");
+                    let print_children = current_node_clone.borrow().print_structure(0);
+                    println!("{print_children}");
+                }
                 for i in 0..current_node_clone.borrow().children.len() {
                     let child_name = current_node_clone2.borrow().children[i]
                         .borrow()
@@ -137,6 +118,9 @@ fn parse_input(input: &str) -> Rc<RefCell<Node>> {
                         .clone();
                     if child_name == splited_line[2] {
                         current_node = Rc::clone(&current_node_clone.borrow().children[i]);
+                        if current_node.borrow().name == "wttc" {
+                            println!(" we found wttc")
+                        }
                         break;
                     }
                 }
@@ -147,6 +131,9 @@ fn parse_input(input: &str) -> Rc<RefCell<Node>> {
 }
 
 fn ls_command(input: Vec<&str>, tree: Rc<RefCell<Node>>) {
+    if tree.borrow().name == "wttc" {
+        println!("{:?}", input);
+    }
     for file in input {
         let split: Vec<&str> = file.split(' ').collect();
         let cloned_tree = Rc::clone(&tree);
@@ -155,7 +142,7 @@ fn ls_command(input: Vec<&str>, tree: Rc<RefCell<Node>>) {
         } else {
             let size: i32 = match split[0].parse() {
                 Ok(number) => number,
-                Err(err) => panic!("failei parisng {:?}", split[0]),
+                Err(_err) => panic!("failei parisng {:?}", split[0]),
             };
             push_node(cloned_tree, String::from(split[1]), size, true)
         }
@@ -245,8 +232,6 @@ $ ls
 7214296 k";
         let tree = parse_input(input);
         sum_points_for_nodes(&tree);
-        let print = tree.borrow().print_structure(0);
-        println!("{print}");
         let directories = get_all_directories(tree).unwrap();
         let result = sum_of_directoriese_smaller_than_limit(directories, 100000);
 
