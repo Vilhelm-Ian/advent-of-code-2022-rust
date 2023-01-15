@@ -46,20 +46,42 @@ impl Node {
         if self.is_file {
             return format!("{:?} {:?} ", self.name.clone(), self.value);
         } else {
-            result = format!("{} {} \n", self.name.clone(), self.value);
+            result = format!("{} {}", self.name.clone(), self.value);
         }
         let inditation = " ".repeat(index);
         for i in 0..self.children.len() {
             let child = Rc::clone(&self.children[i]);
             let child_result = child.borrow().print_structure(index + 1);
-            result = format!("{result} {inditation}{child_result} \n",)
+            result = format!("{result} \n {inditation}{child_result}",)
         }
         result
     }
 }
 
 fn main() {
-    let input = variable::INPUT;
+    let input = "$ cd /
+$ ls
+dir a
+14848514 b.txt
+8504156 c.dat
+dir d
+$ cd a
+$ ls
+dir e
+29116 f
+2557 g
+62596 h.lst
+$ cd e
+$ ls
+584 i
+$ cd ..
+$ cd ..
+$ cd d
+$ ls
+4060174 j
+8033020 d.log
+5626152 d.ext
+7214296 k";
     let tree = parse_input(input);
     sum_points_for_nodes(&tree);
     let print = tree.borrow().print_structure(0);
@@ -223,6 +245,8 @@ $ ls
 7214296 k";
         let tree = parse_input(input);
         sum_points_for_nodes(&tree);
+        let print = tree.borrow().print_structure(0);
+        println!("{print}");
         let directories = get_all_directories(tree).unwrap();
         let result = sum_of_directoriese_smaller_than_limit(directories, 100000);
 
