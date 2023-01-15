@@ -6,39 +6,59 @@ struct Node {
     value: i32,
     name: String,
     parent: Option<Rc<RefCell<Node>>>,
+    is_file: bool,
 }
 
 impl Node {
-    fn new(name: String, parent: Option<Rc<RefCell<Node>>>) -> Self {
+    fn new(name: String, parent: Option<Rc<RefCell<Node>>>, value: i32, is_file: bool) -> Self {
         Self {
-            value: 0,
+            value,
             children: Vec::new(),
             parent,
             name,
+            is_file,
+        }
+    }
+    fn default() -> Self {
+        Self {
+            value: 0,
+            children: Vec::new(),
+            parent: None,
+            name: String::from("/"),
+            is_file: false,
         }
     }
     fn print_structure(&self, index: usize) -> String {
-        let mut result = self.name.clone();
+        let mut result;
+        if self.is_file {
+            return format!("{:?} {:?} ", self.name.clone(), self.value);
+        } else {
+            result = format!("{} {} \n", self.name.clone(), self.value);
+        }
         let inditation = " ".repeat(index);
         for i in 0..self.children.len() {
             let child = Rc::clone(&self.children[i]);
             let child_result = child.borrow().print_structure(index + 1);
-            result = format!("{result} \n {inditation}{child_result}")
+            result = format!("{result} {inditation}{child_result} \n",)
         }
         result
     }
 }
 
 fn solve(input: &str) -> Rc<RefCell<Node>> {
-    let root = Rc::new(RefCell::new(Node::new(String::from("/"), None)));
+    let root = Rc::new(RefCell::new(Node::default()));
     let lines: Vec<&str> = input.split('\n').collect();
     let mut files_and_folders = vec![];
     let mut is_ls = false;
     let mut current_node = Rc::clone(&root);
-    for line in lines {
+    for i in 0..lines.len() {
+        let line = lines[i];
         let splited_line: Vec<&str> = line.split(' ').collect();
         if is_ls {
-            if line.contains('$') {
+            if line.contains('$') || i == lines.len() - 1 {
+                if i == lines.len() - 1 {
+                    files_and_folders.push(line)
+                }
                 let node_copy = Rc::clone(&current_node);
                 ls_command(files_and_folders, node_copy);
                 files_and_folders = vec![];
@@ -83,19 +103,19 @@ fn solve(input: &str) -> Rc<RefCell<Node>> {
 fn ls_command(input: Vec<&str>, tree: Rc<RefCell<Node>>) {
     for file in input {
         let split: Vec<&str> = file.split(' ').collect();
+        let cloned_tree = Rc::clone(&tree);
         if split[0] == "dir" {
-            let cloned_tree = Rc::clone(&tree);
-            push_node(cloned_tree, String::from(split[1]))
+            push_node(cloned_tree, String::from(split[1]), 0, false)
         } else {
             let size: i32 = split[0].parse().unwrap();
-            tree.borrow_mut().value += size
+            push_node(cloned_tree, String::from(split[1]), size, true)
         }
     }
 }
 
-fn push_node(tree: Rc<RefCell<Node>>, name: String) {
+fn push_node(tree: Rc<RefCell<Node>>, name: String, value: i32, is_file: bool) {
     let tree_clone = Rc::clone(&tree);
-    let child = Node::new(name, Some(tree_clone));
+    let child = Node::new(name, Some(tree_clone), value, is_file);
     let tree_clone_2 = Rc::clone(&tree);
     tree_clone_2
         .borrow_mut()
@@ -104,12 +124,17 @@ fn push_node(tree: Rc<RefCell<Node>>, name: String) {
 }
 
 fn sum_points_for_nodes(tree: &Rc<RefCell<Node>>) -> i32 {
-    let mut result = 0;
-    let tree_borrowed = tree.borrow();
-    for i in 0..tree_borrowed.children.len() {
-        result += sum_points_for_nodes(&tree_borrowed.children[i])
+    let mut tree_borrowed = tree.borrow_mut();
+    if tree_borrowed.is_file {
+        return tree_borrowed.value;
     }
-    result + tree.borrow().value
+    let mut result = tree_borrowed.value;
+    for i in 0..tree_borrowed.children.len() {
+        let sum_of_child_nodes = sum_points_for_nodes(&tree_borrowed.children[i]);
+        tree_borrowed.value += sum_of_child_nodes;
+        result += sum_of_child_nodes;
+    }
+    result
 }
 
 fn main() {
@@ -137,8 +162,10 @@ $ ls
 5626152 d.ext
 7214296 k";
     let result = solve(input);
+    let sum = sum_points_for_nodes(&result);
     let print = result.borrow().print_structure(0);
     println!("{print}");
+    println!("{sum}");
 }
 
 #[cfg(test)]
