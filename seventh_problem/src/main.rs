@@ -1,5 +1,18 @@
 use std::cell::RefCell;
+
 use std::rc::Rc;
+mod variable;
+
+struct File {
+    value: i32,
+    name: String,
+}
+
+impl File {
+    fn new(value: i32, name: String) -> Self {
+        Self { value, name }
+    }
+}
 
 struct Node {
     children: Vec<Rc<RefCell<Node>>>,
@@ -46,37 +59,17 @@ impl Node {
 }
 
 fn main() {
-    let input = "$ cd /
-$ ls
-dir a
-14848514 b.txt
-8504156 c.dat
-dir d
-$ cd a
-$ ls
-dir e
-29116 f
-2557 g
-62596 h.lst
-$ cd e
-$ ls
-584 i
-$ cd ..
-$ cd ..
-$ cd d
-$ ls
-4060174 j
-8033020 d.log
-5626152 d.ext
-7214296 k";
-    let result = solve(input);
-    let sum = sum_points_for_nodes(&result);
-    let print = result.borrow().print_structure(0);
+    let input = variable::INPUT;
+    let tree = parse_input(input);
+    sum_points_for_nodes(&tree);
+    let print = tree.borrow().print_structure(0);
     println!("{print}");
-    println!("{sum}");
+    let directories = get_all_directories(tree).unwrap();
+    let sum_of_directoris = sum_of_directoriese_smaller_than_limit(directories, 100000);
+    println!("the solution is {:?}", sum_of_directoris);
 }
 
-fn solve(input: &str) -> Rc<RefCell<Node>> {
+fn parse_input(input: &str) -> Rc<RefCell<Node>> {
     let root = Rc::new(RefCell::new(Node::default()));
     let lines: Vec<&str> = input.split('\n').collect();
     let mut files_and_folders = vec![];
@@ -138,7 +131,10 @@ fn ls_command(input: Vec<&str>, tree: Rc<RefCell<Node>>) {
         if split[0] == "dir" {
             push_node(cloned_tree, String::from(split[1]), 0, false)
         } else {
-            let size: i32 = split[0].parse().unwrap();
+            let size: i32 = match split[0].parse() {
+                Ok(number) => number,
+                Err(err) => panic!("failei parisng {:?}", split[0]),
+            };
             push_node(cloned_tree, String::from(split[1]), size, true)
         }
     }
@@ -167,8 +163,39 @@ fn sum_points_for_nodes(tree: &Rc<RefCell<Node>>) -> i32 {
     }
     result
 }
+
+fn get_all_directories(tree: Rc<RefCell<Node>>) -> Option<Vec<File>> {
+    let tree_borrowed = tree.borrow();
+    let mut result: Vec<File> = vec![];
+    if tree_borrowed.is_file {
+        return None;
+    }
+    for i in 0..tree_borrowed.children.len() {
+        let child = Rc::clone(&tree_borrowed.children[i]);
+        let child_clone = tree_borrowed.children[i].borrow();
+        if !child_clone.is_file {
+            result.push(File::new(child_clone.value, child_clone.name.clone()));
+            if let Some(mut directories) = get_all_directories(child) {
+                result.append(&mut directories)
+            }
+        }
+    }
+    Some(result)
+}
+
+fn sum_of_directoriese_smaller_than_limit(directories: Vec<File>, limit: i32) -> i32 {
+    let mut result = 0;
+    for directory in directories {
+        if directory.value <= limit {
+            result += directory.value
+        }
+    }
+    result
+}
+
 #[cfg(test)]
 mod tests {
+    use super::*;
     #[test]
     fn example() {
         let input = "$ cd /
@@ -194,7 +221,12 @@ $ ls
 8033020 d.log
 5626152 d.ext
 7214296 k";
-        let result = 95437;
-        assert_eq!(result, 4);
+        let tree = parse_input(input);
+        sum_points_for_nodes(&tree);
+        let directories = get_all_directories(tree).unwrap();
+        let result = sum_of_directoriese_smaller_than_limit(directories, 100000);
+
+        let expected = 95437;
+        assert_eq!(expected, result);
     }
 }
