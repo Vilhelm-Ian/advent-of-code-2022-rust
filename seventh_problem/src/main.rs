@@ -249,7 +249,7 @@ $ ls
         let tree = parse_input(INPUT);
         sum_points_for_nodes(&tree);
         let directories = get_all_directories(tree).unwrap();
-        let result = find_smallest_directory_above_limit(&directories, 100000);
+        let result = find_smallest_directory_above_limit(&directories, 8381165);
 
         let expected = 24933642;
         assert_eq!(expected, result);
