@@ -60,8 +60,13 @@ fn main() {
     let print = tree.borrow().print_structure(0);
     println!("{print}");
     let directories = get_all_directories(tree).unwrap();
-    let sum_of_directoris = sum_of_directoriese_smaller_than_limit(directories, 100000);
+    let sum_of_directoris = sum_of_directoriese_smaller_than_limit(&directories, 100000);
+    let directory_to_delete = find_smallest_directory_above_limit(&directories, 8381165);
     println!("the solution is {:?}", sum_of_directoris);
+    println!(
+        "the size of the smallest file above limit is {:?}",
+        directory_to_delete
+    );
 }
 
 fn parse_input(input: &str) -> Rc<RefCell<Node>> {
@@ -181,7 +186,7 @@ fn get_all_directories(tree: Rc<RefCell<Node>>) -> Option<Vec<File>> {
     Some(result)
 }
 
-fn sum_of_directoriese_smaller_than_limit(directories: Vec<File>, limit: i32) -> i32 {
+fn sum_of_directoriese_smaller_than_limit(directories: &Vec<File>, limit: i32) -> i32 {
     let mut result = 0;
     for directory in directories {
         if directory.value <= limit {
@@ -191,12 +196,21 @@ fn sum_of_directoriese_smaller_than_limit(directories: Vec<File>, limit: i32) ->
     result
 }
 
+fn find_smallest_directory_above_limit(directories: &Vec<File>, limit: i32) -> i32 {
+    let mut result = 0;
+    for directory in directories {
+        if directory.value >= limit && (directory.value < result || result == 0) {
+            println!("{:?}", directory.value);
+            result = directory.value
+        }
+    }
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[test]
-    fn example() {
-        let input = "$ cd /
+    const INPUT: &str = "$ cd /
 $ ls
 dir a
 14848514 b.txt
@@ -219,12 +233,24 @@ $ ls
 8033020 d.log
 5626152 d.ext
 7214296 k";
-        let tree = parse_input(input);
+    #[test]
+    fn test_sum() {
+        let tree = parse_input(INPUT);
         sum_points_for_nodes(&tree);
         let directories = get_all_directories(tree).unwrap();
-        let result = sum_of_directoriese_smaller_than_limit(directories, 100000);
+        let result = sum_of_directoriese_smaller_than_limit(&directories, 100000);
 
         let expected = 95437;
+        assert_eq!(expected, result);
+    }
+    #[test]
+    fn test_find_smallest_above_limit() {
+        let tree = parse_input(INPUT);
+        sum_points_for_nodes(&tree);
+        let directories = get_all_directories(tree).unwrap();
+        let result = find_smallest_directory_above_limit(&directories, 100000);
+
+        let expected = 24933642;
         assert_eq!(expected, result);
     }
 }
