@@ -98,7 +98,7 @@ fn parse_input(input: &str) -> Rc<RefCell<Node>> {
             current_node = match splited_line[2] {
                 "/" => continue,
                 ".." => move_up_directory(node_copy, i),
-                _ => cd_into(node_copy, splited_line[2]),
+                _ => cd_into(node_copy, splited_line[2]).unwrap(),
             };
         }
     }
@@ -113,7 +113,7 @@ fn move_up_directory(current_node: Rc<RefCell<Node>>, i: usize) -> Rc<RefCell<No
     Rc::clone(&parent_current_node)
 }
 
-fn cd_into(mut current_node: Rc<RefCell<Node>>, folder_name: &str) -> Rc<RefCell<Node>> {
+fn cd_into(current_node: Rc<RefCell<Node>>, folder_name: &str) -> Option<Rc<RefCell<Node>>> {
     let current_node_clone = Rc::clone(&current_node);
     let current_node_clone2 = Rc::clone(&current_node);
     for i in 0..current_node_clone.borrow().children.len() {
@@ -122,11 +122,10 @@ fn cd_into(mut current_node: Rc<RefCell<Node>>, folder_name: &str) -> Rc<RefCell
             .name
             .clone();
         if child_name == folder_name {
-            current_node = Rc::clone(&current_node_clone.borrow().children[i]);
-            break;
+            return Some(Rc::clone(&current_node_clone.borrow().children[i]));
         }
     }
-    Rc::clone(&current_node)
+    None
 }
 
 fn ls_command(input: Vec<&str>, tree: Rc<RefCell<Node>>) {
