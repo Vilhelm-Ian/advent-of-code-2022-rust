@@ -57,8 +57,8 @@ fn main() {
     let input = variable::INPUT;
     let tree = parse_input(input);
     sum_points_for_nodes(&tree);
-    let print = tree.borrow().print_structure(0);
-    println!("{print}");
+    //let print = tree.borrow().print_structure(0);
+    // println!("{print}");
     let directories = get_all_directories(tree).unwrap();
     let sum_of_directoris = sum_of_directoriese_smaller_than_limit(&directories, 100000);
     let directory_to_delete = find_smallest_directory_above_limit(&directories, 8381165);
@@ -79,22 +79,20 @@ fn parse_input(input: &str) -> Rc<RefCell<Node>> {
         let line = lines[i];
         let splited_line: Vec<&str> = line.split(' ').collect();
         if is_ls {
-            if line.contains('$') || i == lines.len() - 1 {
-                if i == lines.len() - 1 {
-                    files_and_folders.push(line)
-                }
+            if splited_line[0] != "$" {
+                files_and_folders.push(line)
+            }
+            if splited_line[0] == "$" || i == lines.len() - 1 {
                 let node_copy = Rc::clone(&current_node);
                 ls_command(files_and_folders, node_copy);
                 files_and_folders = vec![];
                 is_ls = false;
-            } else {
-                files_and_folders.push(line)
             }
         }
         if splited_line[1] == "ls" {
             is_ls = true;
-            continue;
         }
+        //is_ls = splited_line[1] == "ls" || is_ls; Is this better than the above code
         if splited_line[1] == "cd" {
             let node_copy = Rc::clone(&current_node);
             current_node = match splited_line[2] {
@@ -112,9 +110,6 @@ fn move_up_directory(current_node: Rc<RefCell<Node>>, i: usize) -> Rc<RefCell<No
         Some(parent) => Rc::clone(parent),
         None => panic!("has no parent at line {:?}", i),
     };
-    if parent_current_node.borrow().name == "/" {
-        println!("parent of {:?} is /", current_node.borrow().name);
-    }
     Rc::clone(&parent_current_node)
 }
 
