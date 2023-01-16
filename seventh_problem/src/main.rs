@@ -59,9 +59,14 @@ fn main() {
     sum_points_for_nodes(&tree);
     //let print = tree.borrow().print_structure(0);
     // println!("{print}");
+    let used_space;
+    {
+        used_space = tree.borrow().value;
+    }
     let directories = get_all_directories(tree).unwrap();
     let sum_of_directoris = sum_of_directoriese_smaller_than_limit(&directories, 100000);
-    let directory_to_delete = find_smallest_directory_above_limit(&directories, 8381165);
+    let required_space = calculate_space_to_be_freed(30000000, used_space, 70000000);
+    let directory_to_delete = find_smallest_directory_above_limit(&directories, required_space);
     println!("the solution is {:?}", sum_of_directoris);
     println!(
         "the size of the smallest file above limit is {:?}",
@@ -201,11 +206,15 @@ fn find_smallest_directory_above_limit(directories: &Vec<File>, limit: i32) -> i
     let mut result = 0;
     for directory in directories {
         if directory.value >= limit && (directory.value < result || result == 0) {
-            println!("{:?}", directory.value);
             result = directory.value
         }
     }
     result
+}
+
+fn calculate_space_to_be_freed(required: i32, used: i32, total: i32) -> i32 {
+    let available = total - used;
+    required - available
 }
 
 #[cfg(test)]
