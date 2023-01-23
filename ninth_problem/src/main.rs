@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::collections::HashSet;
 
 mod variable;
@@ -29,25 +30,19 @@ impl Knot {
         }
     }
 
-    fn update_knot(
-        &mut self,
-        previous_knot_cordinates: Cordinates,
-        previous_knot_previous_position: Cordinates,
-    ) {
+    fn update_knot(&mut self, previous_knot_cordinates: Cordinates) {
         if !self.is_previous_knot_close(previous_knot_cordinates) {
             self.previous_position = self.cordinates;
-            if previous_knot_cordinates.x - self.cordinates.x > 0 {
-                self.cordinates.x += 1
-            }
-            if previous_knot_cordinates.x - self.cordinates.x < 0 {
-                self.cordinates.x -= 1
-            }
-            if previous_knot_cordinates.y - self.cordinates.y > 0 {
-                self.cordinates.y += 1
-            }
-            if previous_knot_cordinates.y - self.cordinates.y < 0 {
-                self.cordinates.y -= 1
-            }
+            self.cordinates.x += match previous_knot_cordinates.x.cmp(&self.cordinates.x) {
+                Ordering::Greater => 1,
+                Ordering::Less => -1,
+                Ordering::Equal => 0,
+            };
+            self.cordinates.y += match previous_knot_cordinates.y.cmp(&self.cordinates.y) {
+                Ordering::Greater => 1,
+                Ordering::Less => -1,
+                Ordering::Equal => 0,
+            };
             self.history.insert(self.cordinates);
         }
     }
@@ -128,8 +123,7 @@ fn move_snake(snake: &mut Vec<Knot>, instructions: Vec<Insturction>) {
                     continue;
                 }
                 let previous_knot_cordinates = snake[i - 1].cordinates;
-                let previous_knot_previous_position = snake[i - 1].previous_position;
-                snake[i].update_knot(previous_knot_cordinates, previous_knot_previous_position);
+                snake[i].update_knot(previous_knot_cordinates);
             }
         }
     }
